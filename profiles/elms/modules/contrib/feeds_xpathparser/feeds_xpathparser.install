@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * Contains hook_enable to clear Feeds's cache.
+ */
+
+/**
+ * Implementation of hook_enable().
+ *
+ * Clear Feeds' plugin cache so that this plugin shows up.
+ */
+function feeds_xpathparser_enable() {
+  cache_clear_all('plugins:feeds:plugins', 'cache');
+}
+
+/**
+ * Clear Feeds' plugin cache.
+ */
+function feeds_xpathparser_update_6101() {
+  cache_clear_all('plugins:feeds:plugins', 'cache');
+  return array();
+}
+
+/**
+ * Update to trigger cache clear.
+ */
+function feeds_xpathparser_update_6102() {}

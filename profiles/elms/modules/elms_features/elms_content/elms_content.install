@@ -1,0 +1,26 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for the elms_content module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function elms_content_install() {
+  $types = array(
+    0 => 'page',
+    1 => 'referenced_page',
+  );
+  variable_set('book_allowed_types', $types);
+  variable_set('book_child_type', 'page');
+}
+
+/**
+ * Implementation of hook_update_N().
+ */
+function elms_content_update_6100() {
+  // convert link and folder types to pages
+  db_query("UPDATE {node} SET type='page' WHERE (type='link' OR type='folder')");
+  return array();
+}

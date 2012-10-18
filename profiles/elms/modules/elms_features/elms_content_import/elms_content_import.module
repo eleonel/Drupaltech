@@ -1,0 +1,72 @@
+<?php
+
+include_once('elms_content_import.features.inc');
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function elms_content_import_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  // fallback in case a uuid was never assigned which can happen via outline designer and this module
+  if ($op == 'update' && isset($node->revision_uuid) && $node->revision_uuid == '') {
+    $node->revision_uuid = uuid_uuid();
+  }
+}
+
+/**
+ * Implementation of hook_feeds_after_import().
+ */
+function elms_content_import_feeds_after_import($importer, $source) {
+  // need to clear the UUIDs of all imported nodes from the
+  // get a list of nodes that were just imported
+  $ary = array();
+  $result = db_query("SELECT nid FROM {feeds_node_item} WHERE id='elms_node_import'");
+  while ($val = db_fetch_array($result)) {
+    $ary[] = $val['nid'];
+  }
+  if (count($ary) != 0) {
+    // clear all nodes that came across
+    db_query("DELETE FROM {uuid_node} WHERE nid IN(". db_placeholders($ary) .")", $ary);
+    // clean up revisions if they exist
+    db_query("DELETE FROM {uuid_node_revisions} WHERE nid IN(". db_placeholders($ary) .")", $ary);
+    // clean up original import table
+    db_query("DELETE FROM {feeds_node_item} WHERE id='elms_node_import'");
+    // seed all nodes by saving them all again
+    foreach ($ary as $nid) {
+      $node = node_load($nid);
+      $node->uuid = uuid_uuid();
+      $node->revision_uuid = uuid_uuid();
+      node_save($node);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function elms_content_import_menu() {
+  $items = array();
+  $items['elms_site_admin/import_export/import_content'] = array(
+    'title' => 'Import content',
+    'description' => "Import content into the site outline",
+    'weight' => -20,
+    'access callback' => '_elms_content_import_admin_access',
+    'access arguments' => array(),
+    'page callback' => 'elms_content_import_outline_import_redirect',
+  );
+  return $items;
+}
+
+/**
+ * Callback for access.
+ */
+function _elms_content_import_admin_access() {
+  $group = og_get_group_context();
+  return (og_is_group_admin($group) || user_access('administer site configuration'));
+}
+
+/**
+ * Callback for redirecting browser to the import link
+ */
+function elms_content_import_outline_import_redirect() {
+  drupal_goto('import/elms_node_import');
+}

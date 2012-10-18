@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function elms_site_install() {     
+  //change the weight so that this change occures later in operations to allow for fields to be added via other modules also modifying the contact form
+  db_query("UPDATE {system} SET weight = 100 WHERE name = 'elms_site'");
+}

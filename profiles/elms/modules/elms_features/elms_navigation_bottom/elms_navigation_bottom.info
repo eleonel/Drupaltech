@@ -1,0 +1,19 @@
+core = "6.x"
+dependencies[] = "context"
+dependencies[] = "regions"
+description = "ELMS Bottom Navigation and included blocks"
+features[context][] = "elms_core-nav-bottom"
+features[ctools][] = "context:context:3"
+name = "ELMS Nav Bottom"
+package = "ELMS"
+project = "elms_navigation_bottom"
+
+
+
+
+; Information added by drupal.org packaging script on 2012-06-28
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "elms_features"
+datestamp = "1340910101"
+

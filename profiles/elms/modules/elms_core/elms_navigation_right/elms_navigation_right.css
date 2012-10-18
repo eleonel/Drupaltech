@@ -1,0 +1,175 @@
+/* right side blocks */
+#regions_elms_navigation_right {
+  background-color:#222;
+	color:#EEE;
+  width:30%;
+  top:50px;
+  bottom:5px;
+  z-index:100;
+  right:-30%;
+  float:right;
+  position:fixed;
+  padding:0px;
+  margin:0px;
+  overflow:auto;
+  -webkit-border-radius: 10px;
+-moz-border-radius: 10px;
+border-radius: 10px;
+}
+#regions_elms_navigation_right .regions_block_title {
+  padding:5px;
+	background-color:#222;
+	color:#EEE;
+  margin:300px 0px 0px -55px;
+  -o-transform:  rotate(-90deg); /* opera specific */
+  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3); /* ie */
+  -webkit-transform: rotate(-90deg);
+  -moz-transform: rotate(-90deg);
+  display:block;
+  height: 20px;
+  width: 70px;
+  float:left;
+  cursor:pointer;
+  position:fixed;
+  font-size:14px;
+  font-weight:bold;
+}
+
+#regions_elms_navigation_right .regions_block_title a{
+	color:#EEE;
+}
+
+#regions_elms_navigation_right .regions_block_content a{
+  color:#BBF;
+}
+
+#regions_elms_navigation_right .regions_block_content h2{
+  color:#EEE;
+}
+
+#regions_elms_navigation_right .regions_block_content {
+  padding:40px 10px 10px 10px;
+  margin:0px;
+  width:100%;
+  top:0px;
+  bottom:0px;
+  position:absolute;
+	border-left:solid 10px #666;
+  z-index:101;
+}
+#regions_elms_navigation_right .regions_1 .regions_block_content {
+  z-index:102;
+}
+/* colors for the blocks on the right */
+#regions_elms_navigation_right .regions_1 .regions_block_title {
+  margin-top:45px;
+}
+#regions_elms_navigation_right .regions_2 .regions_block_title {
+  margin-top:125px;
+}
+#regions_elms_navigation_right .regions_3 .regions_block_title {
+  margin-top:205px;
+}
+#regions_elms_navigation_right .regions_4 .regions_block_title {
+  margin-top:285px;
+}
+#regions_elms_navigation_right .regions_5 .regions_block_title {
+  margin-top:365px;
+}
+#regions_elms_navigation_right .regions_6 .regions_block_title {
+  margin-top:445px;
+}
+/* colors for the blocks on the right */
+#regions_block_views_elms_timeline_list-block_1 .regions_block_title {
+  background-color:#ffe4ad;
+}
+#regions_block_views_elms_timeline_list-block_1 .regions_block_title a {
+  color:#222;
+}
+#regions_block_views_elms_timeline_list-block_1 .regions_block_content {
+  border-left:solid 10px #ffe4ad;
+}
+#regions_block_views_elms_poll_list-block_1 .regions_block_title {
+  background-color:#addeff;
+}
+#regions_block_views_elms_poll_list-block_1 .regions_block_content {
+  border-left:solid 10px #addeff;
+}
+#regions_block_views_elms_poll_list-block_1 .regions_block_title a {
+  color:#222;
+}
+#regions_block_views_elms_reaction_list-block_1 .regions_block_title {
+  background-color:#ffb39e;
+}
+#regions_block_views_elms_reaction_list-block_1 .regions_block_content {
+  border-left:solid 10px #ffb39e;
+}
+#regions_block_views_elms_reaction_list-block_1 .regions_block_title a {
+  color:#222;
+}
+#regions_block_views_elms_place_list-block_1 .regions_block_title {
+  background-color:#ebff99;
+}
+#regions_block_views_elms_place_list-block_1 .regions_block_content {
+  border-left:solid 10px #ebff99;
+}
+#regions_block_views_elms_place_list-block_1 .regions_block_title a {
+  color:#222;
+}
+#regions_block_views_elms_related_links_list-block_1 .regions_block_title {
+  background-color:#e9bdff;
+}
+#regions_block_views_elms_related_links_list-block_1 .regions_block_content {
+  border-left:solid 10px #e9bdff;
+}
+#regions_block_views_elms_related_links_list-block_1 .regions_block_title a {
+  color:#222;
+}
+#regions_block_views_elms_term_list-block_1 .regions_block_title {
+  background-color:#F6B0B8;
+}
+#regions_block_views_elms_term_list-block_1 .regions_block_content {
+  border-left:solid 10px #F6B0B8;
+}
+#regions_block_views_elms_term_list-block_1 .regions_block_title a {
+  color:#222;
+}
+#regions_block_views_elms_schedule-block_1 .regions_block_title {
+  background-color:#FF9;
+}
+#regions_block_views_elms_schedule-block_1 .regions_block_title a {
+  color:#222;
+}
+#regions_block_views_elms_schedule-block_1 .regions_block_content {
+  border-left:solid 10px #FF9;
+}
+
+#regions_elms_navigation_right .gmap-popup {
+	color:#222;
+}
+
+/* open / close block display */
+#regions_elms_navigation_right .regions_toggle_open {
+ margin:0px 0px 0px -30px;
+ background-image: url('images/close.png');
+ background-repeat:no-repeat;
+ background-position:center;
+ background-color:#333;
+ width: 30px;
+ height:20px;
+ float:left;
+ cursor:pointer;
+ position: fixed;
+}
+#regions_elms_navigation_right .regions_toggle_closed {
+ margin:0px 0px 0px -30px;
+ background-image: url('images/open.png');
+ background-repeat:no-repeat;
+ background-position:center;
+ background-color:#333;
+ width: 30px;
+ height:20px;
+ float:left;
+ cursor:pointer;
+ position: fixed;
+}

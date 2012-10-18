@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function context_reaction_theme_install() {
+  db_query("UPDATE {system} SET weight = 0 WHERE name = 'context_reaction_theme'");
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function context_reaction_theme_update_6200() {
+  db_query("UPDATE {system} SET weight = 0 WHERE name = 'context_reaction_theme'");
+}

@@ -1,0 +1,172 @@
+<?php
+define('UPJW_MACHINE_NAME', 'up_jwplayer');
+/**
+ * Implements hook_init().
+ */
+function user_progress_jwplayer_init() {
+  global $user;
+  $node = menu_get_object();
+  // have to be in a group currently AND jwplayer be told to track
+  if (user_access('set '. UPJW_MACHINE_NAME .' progress record') && isset($node->nid)) {
+    // more efficient way of verifying that og is enabled
+    if (function_exists('og_get_group_context')) {
+      $group = og_get_group_context();
+      // have to be in a group currently AND jwplayer be told to track
+      if (isset($group->nid)) {
+        // calculate what the registry id is
+        _user_progress_jwplayer_enable_player($group->nid);
+      }
+    }
+    else {
+      // calculate what the registry id is
+      _user_progress_jwplayer_enable_player();
+    }
+  }
+}
+
+/**
+ * Helper function the implement the jwplayer js code
+ */
+function _user_progress_jwplayer_enable_player($nid = NULL) {
+  $regids = _user_progress_get_registry_ids(UPJW_MACHINE_NAME, $nid);
+    // verify that we got a record, should only be one though
+    if (count($regids) > 0) {
+      // establish user progress js api with our registry id
+      $vars = array(
+        'upregid' => $regids[0]['upregid'],
+        'pressed_play' => FALSE,
+      );
+      _user_progress_js_setup($vars);
+      // add jwplayer handlers to implement
+      drupal_add_js(drupal_get_path('module', 'user_progress') .'/js/jwplayer.js', 'header');
+    }
+}
+
+/**
+ * Implementation of hook_dashboard_requirements().
+ */
+function user_progress_jwplayer_dashboard_requirements($provider) {
+  switch ($provider) {
+    case 'user_progress':
+      $requirements['jwplayer'] = array(
+        'title' => t('- Video player by the numbers -'),
+        'severity' => REQUIREMENT_INFO,
+      );
+      // count the number of times a video is started
+      $node = menu_get_object();
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND tuprec.nid=%d AND data2='%s'", UPJW_MACHINE_NAME, $node->nid, 'start'));
+      $requirements['jwplayer_video_start'] = array(
+        'title' => t('Video started'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+      // count the number of times a video is successfully completed
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND tuprec.nid=%d AND data2='%s'", UPJW_MACHINE_NAME, $node->nid, 'complete'));
+      $requirements['jwplayer_video_finished'] = array(
+        'title' => t('Video finished'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+      // skipped ahead in content
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND tuprec.nid=%d AND data2='%s'", UPJW_MACHINE_NAME, $node->nid, 'forward'));
+      $requirements['jwplayer_skip_ahead'] = array(
+        'title' => t('Skipped forward in video'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+      // reviewed content
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND tuprec.nid=%d AND data2='%s'", UPJW_MACHINE_NAME, $node->nid, 'back'));
+      $requirements['jwplayer_jump_back'] = array(
+        'title' => t('Skipped back in video'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+    break;
+    case 'og':
+      $group = og_get_group_context();
+      $requirements['jwplayer'] = array(
+        'title' => t('- Video player usage numbers -'),
+        'severity' => REQUIREMENT_INFO,
+      );
+      // count the number of times a video is started
+      $node = menu_get_object();
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND tupreg.nid=%d AND data2='%s'", UPJW_MACHINE_NAME, $group->nid, 'start'));
+      $requirements['jwplayer_video_start'] = array(
+        'title' => t('Video started'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+      // count the number of times a video is successfully completed
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND tupreg.nid=%d AND data2='%s'", UPJW_MACHINE_NAME, $group->nid, 'complete'));
+      $requirements['jwplayer_video_finished'] = array(
+        'title' => t('Video finished'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+      // skipped ahead in content
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND tupreg.nid=%d AND data2='%s'", UPJW_MACHINE_NAME, $group->nid, 'forward'));
+      $requirements['jwplayer_skip_ahead'] = array(
+        'title' => t('Skipped forward in video'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+      // reviewed content
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND tupreg.nid=%d AND data2='%s'", UPJW_MACHINE_NAME, $group->nid, 'back'));
+      $requirements['jwplayer_jump_back'] = array(
+        'title' => t('Skipped back in video'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+    break;
+    case 'system':
+      $requirements['jwplayer'] = array(
+        'title' => t('- Video player usage numbers -'),
+        'severity' => REQUIREMENT_INFO,
+      );
+      // count the number of times a video is started
+      $node = menu_get_object();
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND data2='%s'", UPJW_MACHINE_NAME, 'start'));
+      $requirements['jwplayer_video_start'] = array(
+        'title' => t('Video started'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+      // count the number of times a video is successfully completed
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND data2='%s'", UPJW_MACHINE_NAME, 'complete'));
+      $requirements['jwplayer_video_finished'] = array(
+        'title' => t('Video finished'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+      // skipped ahead in content
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND data2='%s'", UPJW_MACHINE_NAME, 'forward'));
+      $requirements['jwplayer_skip_ahead'] = array(
+        'title' => t('Skipped forward in video'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+      // reviewed content
+      $count = db_result(db_query("SELECT COUNT(uprid) as recordidcount FROM {user_progress_records} as tuprec JOIN {user_progress_registry} as tupreg ON tuprec.upregid=tupreg.upregid WHERE upt_name='%s' AND data2='%s'", UPJW_MACHINE_NAME, 'back'));
+      $requirements['jwplayer_jump_back'] = array(
+        'title' => t('Skipped back in video'),
+        'value' => $count,
+        'severity' => REQUIREMENT_INFO,
+      );
+    break;
+  }
+  return $requirements;
+}
+
+/**
+ * Implements hook_user_progress_define_types().
+ */
+function user_progress_jwplayer_user_progress_define_types() {
+  return array(
+    UPJW_MACHINE_NAME => array(
+      'name' => t('JWPlayer Media'),
+      'data1_handler' => 'int',
+      'data2_handler' => 'string',
+      'data3_handler' => 'int',
+    ),
+  );
+}

@@ -1,0 +1,75 @@
+<?php
+// ELMS: User Progress Requirement Dashboard
+// Development Sponsored by The Pennsylvania State University
+// ELMS is Copyright (C) 2008-2012  The Pennsylvania State University
+//
+// Bryan Ollendyke
+// bto108@psu.edu
+//
+// Keith D. Bailey
+// kdb163@psu.edu
+//
+// 12 Borland
+// University Park,  PA 16802
+
+/**
+ * @file
+ * Provides requirement dashboards associated with the user progress project
+ */
+
+/**
+ * Implementation of hook_requirement_dashboard_provider().
+ */
+function user_progress_requirement_dashboard_requirement_dashboard_provider() {
+  $dashboards['user_progress'] = array(
+    'title' => t('User progress stats'),
+    'path' => 'node/%node/up_stats',
+  );
+  return $dashboards;
+}
+
+/**
+ * Implementation of hook_dashboard_requirements().
+ */
+function user_progress_requirement_dashboard_dashboard_requirements($provider) {
+  switch ($provider) {
+    case 'og':
+      $group = og_get_group_context();
+      $types = _user_progress_list_types();
+      $ary = array();
+      $output = '';
+      // build an array of available activities for this group
+      foreach ($types as $key => $type) {
+        $tmp = _user_progress_get_registry_ids($key, $group->nid);
+        if (is_array($tmp)) {
+          $ary = array_merge($ary, $tmp);
+        }
+      }
+      // convert that to output
+      foreach ($ary as $activity) {
+        $output .= $activity['title'] .', ';
+      }
+      // render a list of the activities
+      $requirements['up_activites'] = array(
+        'title' => t('User progress activities'),
+        'value' => $output,
+        'severity' => REQUIREMENT_INFO,
+      );
+    break;
+    case 'system':
+      // generate a list of available types
+      $types = _user_progress_list_types();
+      $output = '';
+      // convert that to output
+      foreach ($types as $type) {
+        $output .= $type['name'] .', ';
+      }
+      $requirements['up_activites'] = array(
+        'title' => t('User progress activities'),
+        'value' => $output,
+        'severity' => REQUIREMENT_INFO,
+      );
+    break;
+  }
+  return $requirements;
+}

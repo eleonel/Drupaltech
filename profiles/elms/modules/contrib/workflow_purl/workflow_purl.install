@@ -1,0 +1,29 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the workflow_purl module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function workflow_purl_install() {     
+  // change the weight so that this change occures very late in operations
+  // this is needed because purl_goto is being called from nodeapi op=update (effectively escaping hooks early)
+  db_query("UPDATE {system} SET weight = 10000 WHERE name = 'workflow_purl'");
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function workflow_purl_uninstall() {
+  $variables = array();
+  // Delete variables
+  foreach (workflow_get_states() as $sid => $name) {
+    $variables[] = 'workflow_purl_' . $sid;
+  }
+  // loop through and delete them all correctly
+  foreach ($variables as $variable) {
+    variable_del($variable);
+  }
+}

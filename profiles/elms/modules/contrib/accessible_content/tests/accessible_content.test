@@ -1,0 +1,76 @@
+<?php
+
+/**
+*  @file 
+*  Tests for the SimpleTest module
+*/
+class AccessibleContentNodeTypesTestCase extends DrupalWebTestCase {
+  
+  /**
+  *  Implementation of getInfo()
+  */
+  public static function getInfo() {
+    return array(
+      'name' => 'Node Types',
+      'description' => 'Checks Accessible Content Module that it creates the node types.',
+      'group' => 'Accessible Content',
+    );
+  }
+  
+  /**
+  *  Implementation of setUp()
+  */
+  public function setUp() {
+    parent::setUp('accessible_content');  // Enable any modules required for the test
+    // Create and log in our user
+    $privileged_user = $this->drupalCreateUser(array('administer site configuration',
+    												 'access accessibility guidelines',
+                                                     'access accessibility tests',
+                                                     'create accessibility guidelines',
+                                                     'edit accessibility guidelines',
+                                                     'delete accessibility guidelines',
+                                                     'delete accessibility tests',
+                                                     'create accessibility tests',
+                                                     'edit accessibility tests',
+                                                     'view accessibility information'));
+    $this->drupalLogin($privileged_user);
+  }
+  
+  /**
+  *  Tests that the admin bulk update install works
+  */
+  public function testAdminBulkInstall() {
+    $this->drupalPost('admin/settings/accessible_content/create_tests', array(), t('Install or Update Tests'));
+    $this->assertText(t('accessibility tests created'));
+  }
+  
+  /**
+  *  Test that a user can create a guideline
+  */
+  public function testAccessibleContentGuidelineCreate() {
+    // Create node to edit.
+    $edit = array();
+    $edit['title'] = $this->randomName(8);
+    $edit['body'] = $this->randomName(16);
+   
+    $this->drupalPost('node/add/accessibility-guideline', $edit, t('Save'));
+    $this->assertText(t('Accessibility Guideline @title has been created.', array('@title' => $edit['title'])));
+
+  }
+
+  /**
+  *  Test that a user can edit a guideline
+  */
+  public function testAccessibleContentGuidelineEdit() {
+    $guideline = array(
+      'type' => 'accessibility_guideline',
+      'title' => $this->randomName(32),
+      'body' => $this->randomName(120),
+    );
+    $node = $this->drupalCreateNode($guideline);
+    
+    $edit_path = "node/{$node->nid}/edit";
+    $this->drupalGet($edit_path);
+    $this->assertFieldById('edit-body', '', 'Checking that the body field exists');
+  }
+}

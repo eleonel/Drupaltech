@@ -1,0 +1,15 @@
+name = "ELMS Parent Pages"
+description = "Additional funnel pages to split up what a parent-page is"
+package = "ELMS"
+core = "6.x"
+dependencies[] = "elms_parent"
+
+
+
+
+; Information added by drupal.org packaging script on 2012-06-28
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "elms_features"
+datestamp = "1340910101"
+

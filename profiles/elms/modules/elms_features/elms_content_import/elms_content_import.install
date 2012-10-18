@@ -1,0 +1,13 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for the elms_content_import module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function elms_content_import_install() {
+  // allow elms content to fire before the UUID project in case it has to repair an error
+  db_query("UPDATE {system} SET weight = -10 WHERE name = 'elms_content_import' AND type = 'module'");
+}

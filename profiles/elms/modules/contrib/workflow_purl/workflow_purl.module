@@ -1,0 +1,172 @@
+<?php
+// ELMS: Workflow PURL Integration
+// Development Sponsored by The Pennsylvania State University
+// ELMS is Copyright (C) 2008-2012  The Pennsylvania State University
+// 
+// Bryan Ollendyke
+// bto108@psu.edu
+// 
+// Keith D. Bailey
+// kdb163@psu.edu
+// 
+// 12 Borland
+// University Park,  PA 16802
+
+/**
+ * @file
+ * Integrates workflow and purl; only works with spaces_og as the provider
+ */
+
+/*
+ * Implementation of hook_form_alter().
+ */
+function workflow_purl_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'workflow_state_add_form') {
+    // allow for saving of the purl integration variable
+    $form['#submit'] = array_merge(array('workflow_purl_form_submit'), $form['#submit']);
+    // set the value for the purl mapping to this specific workflow value
+    $form['purl_integration'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Purl integration'),
+      '#default_value' => variable_get('workflow_purl_'. $form['sid']['#value'], ''),
+      '#description' => t('Leave this blank to ignore purl integration for this workflow state'),
+      '#weight' => -2,
+      '#maxlength' => 200,
+    );
+    // list available system tokens for replacement
+    $form['purl'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Available tokens'),
+      '#description' => t('Not all of these will make sense given the context of the workflow change but most should.'),
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      '#weight' => -1,
+    );
+    $form['purl']['help'] = array(
+      '#type' => 'markup',
+      '#value' => theme('token_help', array('node', 'global', 'user')),
+    );
+  }
+  // add checkbox for purl which is aligned with spaces_og method
+  if ($form['#id'] == 'node-form' && (arg(0) .'/'. arg(1) != 'admin/content') && og_is_group_type($form['#node']->type)) {
+    $form['purl']['workflow_purl_override'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Override workflow',  
+      '#description' => 'Check this box to override the workflow purl generated address',
+      '#default_value' => FALSE,
+      '#weight' => -10, 
+    );
+    // add form js/css to alter display of purl
+    drupal_add_js(drupal_get_path('module', 'workflow_purl') .'/js/workflow_purl.js');
+    drupal_add_css(drupal_get_path('module', 'workflow_purl') .'/css/workflow_purl.css');
+  }
+}
+
+/*
+ * Implementation of hook_form_submit().
+ */
+function workflow_purl_form_submit($form, &$form_state) {
+  // if purl is set (which it should be) then set the value regardless of if it is empty
+  if (isset($form_state['values']['purl_integration'])) {
+    variable_set('workflow_purl_'. $form_state['values']['sid'], $form_state['values']['purl_integration']);
+  }
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function workflow_purl_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  // the group node makes no sense to load to users, redirect to the front-page
+  if (og_is_group_type($node->type)) {
+    switch ($op) {
+      case 'presave':
+        // detect a workflow change is about to happen
+        if ($node->_workflow != $node->workflow) {
+          $node->_purl_change = _workflow_purl_get_purl($node);
+        }
+      break;
+      case 'update':
+        // verify that it's set AND that it's not empty
+        // _workflow_purl_get_purl returns FALSE if there's nothing to do
+        if (isset($node->_purl_change) && $node->_purl_change != FALSE && (!is_array($node->purl) || !$node->purl['workflow_purl_override'])) {
+          $modifier = array(
+            'value' => $node->_purl_change,
+            'provider' => 'spaces_og',
+            'id' => $node->nid,
+          );
+          purl_save($modifier);
+          // trigger the exit hook to fire correctly
+          $GLOBALS['workflow_purl_redirect_required'] = TRUE;
+        }
+        // allow for overrides to utilize global redirect trick
+        elseif (is_array($node->purl) && $node->purl['workflow_purl_override']) {
+          $GLOBALS['workflow_purl_redirect_required'] = TRUE;
+        }
+      break;
+      case 'insert':
+        // check for a workflow state existing on this node
+        if (isset($node->_workflow) && !$node->purl['workflow_purl_override']) {
+          // verify that this workflow state has a purl map
+          $purl_map = _workflow_purl_get_purl($node);
+          // if purl_map is not false, set the modifier
+          if ($purl_map != FALSE) {
+            $modifier = array(
+              'value' => $purl_map,
+              'provider' => 'spaces_og',
+              'id' => $node->nid,
+            );
+            purl_save($modifier);
+          }
+        }
+      break;
+    }
+  }
+}
+
+// helper function to make modification of purl easier
+function _workflow_purl_get_purl($node) {
+  global $user;
+  // get the workflow path change, if workflow isn't set try _workflow
+  // _workflow is used for transition except on insert where its the only thing set
+  if (isset($node->workflow)) {
+    $purl_change = variable_get('workflow_purl_'. $node->workflow, '');
+  }
+  else {
+    $purl_change = variable_get('workflow_purl_'. $node->_workflow, '');  
+  }
+  // account for no change
+  if ($purl_change == '') {
+    return FALSE;
+  }
+  // build the replacement array
+  $replacement_ary = array(
+    'global' => NULL,
+    'user' => $user,
+    'node' => $node
+  );
+  // apply tokens
+  $purl_change = token_replace_multiple($purl_change, $replacement_ary);
+  // all to lowercase as this is a path
+  $purl_change = drupal_strtolower($purl_change);
+  // remove all bad characters
+  $purl_change = preg_replace('/\W/', '', $purl_change);
+  return $purl_change;
+}
+
+/*
+ * Implementation of hook_exit().
+ */
+function workflow_purl_exit($destination = NULL) {
+  // test for the workflow purl redirect flag
+  if (isset($GLOBALS['workflow_purl_redirect_required']) && $GLOBALS['workflow_purl_redirect_required']) {
+    // flag is only triggered on node form so this should be in the clear to load
+    $node = node_load(arg(1));
+    // test to ensure this is a node though it should be
+    if (isset($node->nid)) {
+      // ensure that we don't keep redirecting endlessly
+      $GLOBALS['workflow_purl_redirect_required'] = FALSE;
+      // redirect to what the path SHOULD be
+      purl_goto('<front>', array('purl' => array('provider' => 'spaces_og', 'id' => $node->nid)));
+    }
+  }
+}

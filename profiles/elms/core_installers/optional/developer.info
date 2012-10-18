@@ -1,0 +1,14 @@
+name = "Developer Tools"
+description = "Enable modules to help with development of the ELMS platform."
+type = "add-on"
+; ELMS Developer install
+dependencies[] = "dbtuner"
+dependencies[] = "devel"
+dependencies[] = "bulk_export"
+
+; Information added by drupal.org packaging script on 2012-06-28
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "elms"
+datestamp = "1340910712"
+

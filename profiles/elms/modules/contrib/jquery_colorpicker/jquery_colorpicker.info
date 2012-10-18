@@ -1,0 +1,9 @@
+name = Jquery Colorpicker
+description = Creates a form element to be used in the form api that adds a color picker 
+core = 6.x
+; Information added by drupal.org packaging script on 2011-11-02
+version = "6.x-2.3"
+core = "6.x"
+project = "jquery_colorpicker"
+datestamp = "1320261333"
+

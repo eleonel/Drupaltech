@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ * The private_download module install file, which handles the install/uninstall tasks.
+ *
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function private_download_uninstall() {
+  db_query("DELETE FROM {variable} WHERE name LIKE 'private_download_%%'");
+}
+
+/**
+ * Implementation of hook_update_N().
+ */
+function private_download_update_6001() {
+  global $conf;
+
+  if (isset($conf['private_download_header'])) {
+    $value = str_replace(array("\r\n", "\r"), "\n", $conf['private_download_header']);
+    if ("Content-Transfer-Encoding: binary\nCache-Control: max-age=60, must-revalidate" == $value) {
+      variable_del('private_download_header');
+    }
+  }
+
+  return array();
+}

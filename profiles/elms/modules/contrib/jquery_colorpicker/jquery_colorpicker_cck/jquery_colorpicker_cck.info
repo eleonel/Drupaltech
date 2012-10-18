@@ -1,0 +1,13 @@
+name = Jquery Colorpicker CCK
+description = Creates a CCK field that provides a jQuery color picker
+core = 6.x
+package = CCK
+
+dependencies[] = jquery_colorpicker 
+dependencies[] = colorpicker_cck
+; Information added by drupal.org packaging script on 2011-11-02
+version = "6.x-2.3"
+core = "6.x"
+project = "jquery_colorpicker"
+datestamp = "1320261333"
+

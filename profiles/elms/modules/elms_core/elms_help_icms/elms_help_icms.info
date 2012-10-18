@@ -1,0 +1,14 @@
+; $Id$
+name = ELMS Help ICMS
+description = Ties in the advanced help icons for the generated help documents.  This is the ICMS documentation outline.
+dependencies[] = advanced_help
+stylesheets[all][] = elms_help_icms.css
+core = 6.x
+package = ELMS
+
+; Information added by drupal.org packaging script on 2012-06-28
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "elms"
+datestamp = "1340910712"
+

@@ -1,0 +1,45 @@
+<?php
+/**
+ * Implementation of hook_install().
+ */
+function elms_user_management_install() {
+  // install tables
+  drupal_install_schema('elms_user_management');
+}
+/**
+ * Implementation of hook_uninstall().
+ */
+function elms_user_management_uninstall() {
+  // drop tables
+  drupal_uninstall_schema('elms_user_management');
+}
+/**
+ * Implementation of hook_schema().
+ */
+function elms_user_management_schema() {
+  $schema['elms_user_management_records'] = array(
+    'description' => 'Stores the data string modifiers for syncing users with external sources per group',
+    'fields' => array(
+      'did' => array(
+        'description' => 'Data piece identifier for user sync',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'og' => array(
+        'description' => 'Group to associate users to',
+        'type' => 'int',
+        'length' => 11,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'description' => 'String for storing connection details',
+        'type' => 'text',
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('did'),
+  );
+  return $schema;
+}

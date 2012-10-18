@@ -1,0 +1,14 @@
+; $Id: user_progress_content
+name = "User Progress Content"
+description = "Track content views by users within the site, lighter weight then drupal core method"
+core = "6.x"
+package = "User Progress"
+project = "user_progress"
+dependencies[] "user_progress"
+
+; Information added by drupal.org packaging script on 2012-06-21
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "user_progress"
+datestamp = "1340300216"
+

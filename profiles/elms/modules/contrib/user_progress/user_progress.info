@@ -1,0 +1,13 @@
+; $Id: user_progress
+name = "User Progress API"
+description = "Generalized analytics framework for tracking actions within drupal as well as allowing applications to securly add to the data bank"
+core = "6.x"
+package = "User Progress"
+project = "user_progress"
+
+; Information added by drupal.org packaging script on 2012-06-21
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "user_progress"
+datestamp = "1340300216"
+

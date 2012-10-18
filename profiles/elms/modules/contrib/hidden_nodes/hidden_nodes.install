@@ -1,0 +1,64 @@
+<?php
+/**
+ * @file
+ * Installation routine for hidden nodes.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function hidden_nodes_install() {
+  // Make sure that the hidden_nodes module runs before menu alter system.
+  db_query("UPDATE {system} SET weight = -1 WHERE name = 'hidden_nodes' AND type = 'module'");
+  drupal_install_schema('hidden_nodes');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function hidden_nodes_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('hidden_nodes');
+  variable_del('hidden_nodes_types');
+  variable_del('hidden_nodes_apply_styles');
+  variable_del('hidden_nodes_show_message');
+  variable_del('hidden_nodes_message');
+  variable_del('hidden_nodes_show_partial_message');
+  variable_del('hidden_nodes_partial_message');
+  variable_del('hidden_nodes_show_parent_message');
+  variable_del('hidden_nodes_parent_message');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function hidden_nodes_schema() {
+  $schema['hidden_nodes'] = array(
+    'description' => 'The base table for hidden nodes.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The primary identifier for a node.',
+        'type' => 'int',
+        'not null' => TRUE),
+      'hidden' => array(
+        'description' => 'Boolean indicating whether the node is hidden.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+    ),
+    'indexes' => array(
+      'hidden' => array('hidden'),
+    ),
+    'primary key' => array('nid'),
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_update_N().
+ */
+function hidden_nodes_update_6100() {
+  // Make sure that the hidden_nodes module runs before menu system.
+  update_sql("UPDATE {system} SET weight = -1 WHERE name = 'hidden_nodes' AND type = 'module'");
+  return array();
+}

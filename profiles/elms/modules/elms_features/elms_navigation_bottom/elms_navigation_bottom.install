@@ -1,0 +1,13 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for the elms_navigation_bottom module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function elms_navigation_bottom_install() {
+  // change the weight so that alters fire after others
+  db_query("UPDATE {system} SET weight = 0 WHERE name = 'elms_navigation_bottom'");
+}

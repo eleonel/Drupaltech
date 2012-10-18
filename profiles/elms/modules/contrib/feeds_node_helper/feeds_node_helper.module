@@ -1,0 +1,110 @@
+<?php
+// Copyright (C) 2011-2012  The Pennsylvania State University
+//
+// Bryan Ollendyke
+// bto108@psu.edu
+//
+// Keith D. Bailey
+// kdb163@psu.edu
+//
+// 12 Borland
+// University Park,  PA 16802
+/**
+ * @file
+ * Allow for mapping imported RID values directly to user roles in drupal
+ */
+
+/**
+ * Adds user target for role
+ */
+
+function feeds_node_helper_feeds_node_processor_targets_alter(&$targets, $content_type) {
+  $targets['uuid_book_parent'] = array(
+    'name' => t('UUID Book Parent'),
+    'description' => t('Create a book parent relationship based on UUID'),
+    'callback' => 'feeds_node_helper_feeds_set_uuid_book_parent_target',
+  );
+  $targets['type'] = array(
+    'name' => t('Node Type'),
+    'description' => t('Map value to a node type'),
+    'callback' => 'feeds_node_helper_feeds_set_type_target',
+  );
+  $targets['uuid'] = array(
+    'name' => t('UUID'),
+    'description' => t('Map value to UUID field'),
+    'callback' => 'feeds_node_helper_feeds_set_uuid_target',
+  );
+  $targets['book_weight'] = array(
+    'name' => t('Book Weight'),
+    'description' => t('Map value to book weight'),
+    'callback' => 'feeds_node_helper_feeds_set_weight_target',
+  );
+}
+
+/**
+ * Set the node uuid from an external system.
+ */
+function feeds_node_helper_feeds_set_uuid_target($node, $target, $value) {
+  $node->uuid = $value;
+  return $node;
+}
+
+/**
+ * Set the node type.
+ */
+function feeds_node_helper_feeds_set_type_target($node, $target, $value) {
+  $node->type = $value;
+  return $node;
+}
+
+/**
+ * Set the book weight.
+ */
+function feeds_node_helper_feeds_set_weight_target($node, $target, $value) {
+  // set the weight based on what it was previously
+  $node->book['weight'] = $value;
+  return $node;
+}
+
+/**
+ * Set the book parent, this assumes a UUID look up.
+ */
+function feeds_node_helper_feeds_set_uuid_book_parent_target($node, $target, $value) {
+  // load the parent from the UUID, it should have been created prior to creation
+  $parentnode = node_get_by_uuid($value);
+  if (!$parentnode) {
+    return $node;
+  }
+  // associate the parent correctly now that we've loaded the node
+  $node->book['plid'] = $parentnode->book['mlid'];
+  return $node;
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function feeds_node_helper_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'feeds_tamper') {
+    return 'plugins';
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function feeds_node_helper_form_alter(&$form, &$form_state, $form_id) {
+  // only apply to feeds import form
+  if ($form_id == 'feeds_import_form') {
+    // clone current GET environment
+    $args = $_GET;
+    // iterate through and scrub input
+    foreach ($args as $key => $val) {
+      $args[$key] = filter_xss(check_plain($val));
+    }
+    // append current arguments to the form
+    $form['feeds']['FeedsHTTPFetcher']['feeds_node_helper_args'] = array(
+      '#type' => 'hidden',
+      '#value' => serialize($args),
+    );
+  }
+}

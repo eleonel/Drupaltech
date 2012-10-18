@@ -1,0 +1,13 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for the elms_helper module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function elms_helper_install() {
+  // change the weight so that alters fire after others
+  db_query("UPDATE {system} SET weight = 2 WHERE name = 'elms_helper'");
+}

@@ -1,0 +1,15 @@
+; $Id: elms_helper.info
+name = ELMS Helper
+description = This module tweaks Drupal to make it ELMS without modifying any other module
+core = "6.x"
+dependencies[] = og
+package = "ELMS"
+project = "elms_helper"
+
+
+; Information added by drupal.org packaging script on 2012-06-28
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "elms"
+datestamp = "1340910712"
+

@@ -1,0 +1,27 @@
+name = "ELMS Navigation Top"
+description = "Top-bar navigation in ELMS"
+core = "6.x"
+package = "ELMS"
+project = "elms_navigation_top"
+dependencies[] = "context"
+dependencies[] = "features"
+dependencies[] = "menu"
+dependencies[] = "regions"
+features[context][] = "elms_core-nav-top"
+features[ctools][] = "context:context:3"
+features[imagecache][] = "elms_navigation_top"
+features[menu_custom][] = "menu-usermenu"
+features[menu_links][] = "menu-usermenu:bookmarks"
+features[menu_links][] = "menu-usermenu:logout"
+features[menu_links][] = "menu-usermenu:parents/my"
+features[menu_links][] = "menu-usermenu:user"
+
+
+
+
+; Information added by drupal.org packaging script on 2012-06-28
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "elms_features"
+datestamp = "1340910101"
+

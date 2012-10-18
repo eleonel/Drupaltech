@@ -1,0 +1,163 @@
+<?php
+// ELMS: Spaces OG Clone
+// Development originally sponsored by The Pennsylvania State University
+// ELMS is Copyright (C) 2008-2012  The Pennsylvania State University
+//
+// Bryan Ollendyke
+// bto108@psu.edu
+//
+// Keith D. Bailey
+// kdb163@psu.edu
+//
+// 12 Borland
+// University Park,  PA 16802
+
+// How many nodes to process in a given batch.
+define('SPACES_OG_CLONE_BATCH_MAX_RUNS', 30);
+
+/**
+ * Implements hook_perm().
+ */
+function spaces_og_clone_perm() {
+  return array('access spaces og clone');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function spaces_og_clone_menu() {
+  $items = array();
+  $items['spaces_og_clone'] = array(
+    'title' => 'Spaces og clone',
+    'description' => 'Copy information related to an organic group to another one',
+    'page callback' => 'spaces_og_clone_clone_page',
+    'access arguments' => array('access spaces og clone'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'spaces_og_clone.pages.inc',
+  );
+
+  $items['spaces_og_clone/%'] = array(
+    'title' => 'Clone',
+    'description' => 'Clone a specific group.',
+    'page callback' => 'spaces_og_clone_clone_page',
+    'page arguments' => array(1),
+    'access callback' => 'spaces_og_clone_node_access',
+    'access arguments' => array(1),
+    'file' => 'spaces_og_clone.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function spaces_og_clone_form_alter(&$form, &$form_state, $form_id) {
+  // The spaces_og_clone_group if set indicates we're showing the clone form. 
+  if (isset($form['#node']) && $form_id == $form['#node']->type .'_node_form' && !empty($form['#node']->spaces_og_clone_group)) {
+    spaces_og_clone_include_files();
+    $original_group = $form['#node']->spaces_og_clone_group;
+
+    // Set a nice title.
+    drupal_set_title(t('Cloning @title', array('@title' => $form['#node']->spaces_og_clone_group->title)));
+
+    // Add in 
+    $settings = module_invoke_all('spaces_og_clone_clone_settings', $original_group);
+    drupal_alter('spaces_og_clone_clone_settings', $settings, $original_group);
+
+    if ($settings) {
+      $form['spaces_og_clone'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Clone settings'),
+        '#tree' => TRUE,
+      ) + $settings;
+    }
+
+    // This allows access to node during submission at $node->spaces_og_clone_group.
+    $form['spaces_og_clone_group'] = array(
+      '#type' => 'value',
+      '#value' => $form['#node']->spaces_og_clone_group,
+    );
+
+    $space = module_exists('spaces') ? spaces_load('og', $original_group->nid) : FALSE;
+    if ($space && !empty($form['spaces_preset']['spaces_preset_og'])) {
+      // Spaces_preset is stored in the spaces overrides and will be overriden
+      // to group setting anyhow.
+      $form['spaces_preset']['#access'] = FALSE;
+      if ($val = $space->controllers->variable->get('spaces_preset_og')) {
+        $form['spaces_preset']['spaces_preset_og']['#default_value'] = $val;
+      }
+    }
+
+    // Change form submit to clone and add submit handler. 
+    if (!empty($form['buttons']['submit'])) {
+      $form['buttons']['submit']['#value'] = t('Clone');
+      // need to remove spaces_og_form_group_submit
+      // in the event that purl was set it will kill the next loop
+      // see http://drupal.org/node/1423000 for background information
+      $pos = array_search('spaces_og_form_group_submit', $form['buttons']['submit']['#submit']);
+      if ($pos !== FALSE) {
+        unset($form['buttons']['submit']['#submit'][$pos]);
+      }
+      // return the #submit array to its original state
+      $form['buttons']['submit']['#submit'] = array_values($form['buttons']['submit']['#submit']);
+      // append our new submit handler last
+      $form['buttons']['submit']['#submit'][] = 'spaces_og_clone_clone_form_submit';
+    }
+    else {
+      drupal_set_message(t('This form is missing submit button. This is likely a conflict with another module. Try adjusting the weight of the module.'));
+      drupal_access_denied();
+      // It'll still try rendering the form without this.
+      exit();
+    }
+  }
+}
+
+/**
+ * Access callback to determine if can clone specific group
+ */
+function spaces_og_clone_include_files() {
+  static $added;
+  if (!isset($added)) {
+    $added = TRUE;
+    module_load_include('inc', 'spaces_og_clone');
+
+    // File scan directory is bad performance, while better maintainbility.
+    $modules = array(
+      'book',
+      'boxes',
+      'content',
+      'features',
+      'node',
+      'nodereference',
+      'spaces_og',
+      'user',
+    );
+    foreach ($modules as $module) {
+      if (module_exists($module)) {
+        module_load_include('inc', 'spaces_og_clone', 'includes/' . $module);
+      }
+    }
+  }
+}
+
+
+/**
+ * Access callback to determine if can clone specific group
+ */
+function spaces_og_clone_node_access($nid) {
+  $node = node_load($nid);
+  return user_access('access spaces og clone') && node_access('create', $node->type) && og_is_group_type($node->type) && node_access('view', $node);
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function spaces_og_clone_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
+  if ($op == 'delete') {
+    db_query('DELETE from {spaces_og_clone_clone_map} WHERE clone_nid = %d OR original_nid = %d', $node->nid, $node->nid);
+    db_query('DELETE from {spaces_og_clone_nid_map} WHERE clone_nid = %d OR original_nid = %d', $node->nid, $node->nid);
+  }
+}
+

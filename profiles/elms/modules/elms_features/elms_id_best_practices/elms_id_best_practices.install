@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function elms_id_best_practices_install() {     
+  // change weight so that it's heavier then views so we can alter it
+  db_query("UPDATE {system} SET weight = 11 WHERE name = 'elms_id_best_practices'");
+}

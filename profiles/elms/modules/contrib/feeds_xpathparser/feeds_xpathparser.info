@@ -1,0 +1,12 @@
+name = Feeds XPath Parser
+description = Parse an XML or HTML document using XPath.
+package = Feeds
+dependencies[] = feeds
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-12-15
+version = "6.x-1.12"
+core = "6.x"
+project = "feeds_xpathparser"
+datestamp = "1323977140"
+

@@ -1,0 +1,20 @@
+core = "6.x"
+dependencies[] = "book"
+dependencies[] = "uuid"
+dependencies[] = "views_bonus_export"
+description = "Provides an XML package for packaging and moving content between ELMS environments"
+features[views][] = "elms_export"
+features[views_api][] = "api:2"
+name = "ELMS Content Export"
+package = "Features"
+project = "elms_content_export"
+
+
+
+
+; Information added by drupal.org packaging script on 2012-06-28
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "elms_features"
+datestamp = "1340910101"
+

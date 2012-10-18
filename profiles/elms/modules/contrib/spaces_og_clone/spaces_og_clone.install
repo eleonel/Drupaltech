@@ -1,0 +1,148 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the spaces_og_clone module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function spaces_og_clone_install() {
+  // Need to run after spaces_og in order to alter it's form elements.
+  db_query("UPDATE {system} SET weight = 10 WHERE name = 'spaces_og_clone' AND type = 'module'");
+  drupal_install_schema('spaces_og_clone');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function spaces_og_clone_uninstall() {
+  drupal_uninstall_schema('spaces_og_clone');
+}
+
+
+/**
+ * Increate the weight of spaces_og_clone.
+ */
+function spaces_og_clone_update_6101() {
+  $ret = array();
+  $ret[] = update_sql("UPDATE {system} SET weight = 10 WHERE name = 'spaces_og_clone' AND type ='module'");
+  return $ret;
+}
+
+/**
+ * Add the new tables for spaces_og_clone.
+ */
+function spaces_og_clone_update_6102() {
+  $ret = array();
+  $schema = spaces_og_clone_schema_v1();
+  _drupal_initialize_schema('spaces_og_clone', $schema);
+  foreach ($schema as $name => $table) {
+    db_create_table($ret, $name, $table);
+  }
+  return $ret;
+}
+
+/**
+ * Implements hook_schema().
+ */
+function spaces_og_clone_schema() {
+  return spaces_og_clone_schema_v1();
+}
+
+/**
+ * The first (and currently only) version of the schema.
+ *
+ * This must stay the same for update 6102 to work correctly.
+ * If changeing, make a spaces_og_clone_schema_v2 that either calls this or
+ * does some other sort of magic.
+ */
+function spaces_og_clone_schema_v1() {
+  $schema = array();
+
+  $schema['spaces_og_clone_clone_map'] = array(
+    'description' => 'Stores the information relating to a clone request', 
+    'fields' => array(
+      'sogcid' => array(
+        'type' => 'serial', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'description' => 'Primary Key: Unique clone ID.',
+      ),
+      'original_nid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0, 
+        'description' => 'Primary Key: The {node}.nid of the original group node.',
+      ),
+      'clone_nid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0, 
+        'description' => 'Primary Key: The {node}.vid of the cloned group node.',
+      ),
+      'uid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0, 
+        'description' => 'Primary Key: The {users}.uid that cloned the group.',
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the clone was done at.',
+        'type' => 'int', 
+        'not null' => TRUE, 
+        'default' => 0,
+      ),
+      'settings' => array(
+        'type' => 'text', 
+        'not null' => FALSE, 
+        'size' => 'big', 
+        'description' => 'The settings used for cloning.',
+        'serialize' => TRUE,
+      ),
+    ), 
+    'indexes' => array(
+      'original_nid' => array('original_nid'),
+      'clone_nid' => array('clone_nid'),
+      'uid' => array('uid'),
+    ), 
+    'primary key' => array('sogcid'),
+  );
+
+  $schema['spaces_og_clone_nid_map'] = array(
+    'description' => 'Stores the information relating original NID to cloned NID of content in a group', 
+    'fields' => array(
+      'sogcid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0, 
+        'description' => 'Primary Key: The {spaces_og_clone_clone_map} clone ID.',
+      ),
+      'original_nid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0, 
+        'description' => 'Primary Key: The {node}.nid of the original node.',
+      ),
+      'clone_nid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0, 
+        'description' => 'Primary Key: The {node}.vid of the cloned node.',
+      ),
+    ), 
+    'indexes' => array(
+      'original_nid' => array('original_nid'),
+      'clone_nid' => array('clone_nid'),
+    ), 
+    'primary key' => array('sogcid', 'original_nid', 'clone_nid'),
+  );
+
+  return $schema; 
+}

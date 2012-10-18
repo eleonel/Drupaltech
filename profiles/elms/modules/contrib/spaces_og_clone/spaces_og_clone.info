@@ -1,0 +1,15 @@
+; $Id: spaces_og_clone.info
+name = "Spaces OG Clone"
+description = "This module provides a method for cloning all content in a Spaces aware organic group based on certain criteria."
+package = Spaces
+dependencies[] = og
+dependencies[] = spaces
+dependencies[] = spaces_og
+core = "6.x"
+
+; Information added by drupal.org packaging script on 2012-06-21
+version = "6.x-1.0-alpha3"
+core = "6.x"
+project = "spaces_og_clone"
+datestamp = "1340299314"
+

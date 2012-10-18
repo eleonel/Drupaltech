@@ -1,0 +1,71 @@
+<?php
+// ELMS: Spaces Theme
+// Development Sponsored by The Pennsylvania State University
+// ELMS is Copyright (C) 2008-2012  The Pennsylvania State University
+//
+// Bryan Ollendyke
+// bto108@psu.edu
+//
+// Keith D. Bailey
+// kdb163@psu.edu
+//
+// 12 Borland
+// University Park,  PA 16802
+
+/**
+ * @file
+ * Functions to enable more granular theme settings per space.
+ */
+
+/**
+ * Implementation of hook_init().
+ */
+function spaces_theme_init() {
+  // only add these settings to the node/%theme page
+  if (arg(0) == 'theme' || (arg(0) == 'node' && arg(2) == 'theme')) {
+    drupal_add_js(drupal_get_path('module', 'spaces_theme') .'/spaces_theme.js');
+  }
+}
+/**
+ * Implementation of hook_menu().
+ */
+function spaces_theme_menu() {
+  $items = array();
+  $items['theme'] = array(
+    'title' => 'Theme settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_spaces_theme_theme_form'),
+    'type' => MENU_NORMAL_ITEM,
+    'access callback' => '_spaces_theme_theme_access',
+    'access arguments' => array(),
+    'file' => 'spaces_theme.theme.inc',
+    'file path' => drupal_get_path('module', 'spaces_theme') .'/inc',
+  );
+  $items['node/%node/theme'] = array(
+    'title' => 'Theme',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_spaces_theme_theme_form'),
+    'type' => MENU_LOCAL_TASK,
+    'access callback' => '_spaces_theme_og_theme_access',
+    'access arguments' => array(),
+    'file' => 'spaces_theme.theme.inc',
+    'file path' => drupal_get_path('module', 'spaces_theme') .'/inc',
+  );
+  return $items;
+}
+
+// only allow group admins to access this page
+function _spaces_theme_theme_access() {
+  $group = og_get_group_context();
+  return og_is_group_admin($group);
+}
+
+// only display tab on group form
+function _spaces_theme_og_theme_access() {
+  $group = og_get_group_context();
+  // if this is the group node, then assess if they are an admin of the group
+  if (arg(1) == $group->nid) {
+    return og_is_group_admin($group);
+  }
+  return 0;
+}

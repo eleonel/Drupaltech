@@ -1,0 +1,87 @@
+<?php
+
+include_once('elms_terms.features.inc');
+
+/**
+ * Implementation of hook_define_highlight_relationship_alter
+ */
+function elms_terms_define_highlight_relationship_alter(&$relationships) {
+  if (spaces_access_feature('view', 'elms_terms')) {
+    $relationships['enhance_content']['highlight_types']['term'] = array(
+      'id' => 'glossary',
+      'ref_field' => '-auto-detect-',
+      'text_field' => 'title',
+      'icon' => drupal_get_path('module', 'elms_terms') .'/images/term.png',
+      'display_text' => t('Add Term to Glossary'),
+    );
+  }
+}
+
+/**
+ * Implementation of hook_filter().
+ */
+function elms_terms_filter($op, $delta = 0, $format = -1, $text = '', $cache_id = 0) {
+  switch ($op) {
+    case 'list':
+      return array(0 => t('Auto-link ELMS Term node references'));
+    break;
+    case 'description':
+      return t('Check content for contextual references based on nodes in the same space');
+    break;
+    case 'no cache':
+      return FALSE;
+    break;
+    case 'prepare':
+      if (spaces_access_feature('view', 'elms_terms')) {
+        $group = og_get_group_context();
+        // make sure we are in a group though it's almost impossible not to be
+        if (isset($group->nid)) {
+          $result = db_query(db_rewrite_sql("SELECT n.title FROM {node} AS n JOIN {og_ancestry} AS oga ON oga.nid=n.nid WHERE type='term' AND oga.group_nid=%d"), $group->nid);
+          // add wrappers as we find them
+          while ($val = db_fetch_array($result)) {
+            $text = str_replace($val['title'], '[termref]'. $val['title'] .'[/termref]', $text);
+          }
+        }
+      }
+      return $text;
+    break;
+    case "process":
+      // nothing needed here because nodereference_highlight will take care of it
+      return $text;
+    break;
+    default:
+      return $text;
+    break;
+  }
+}
+
+/**
+ * Implementation of hook_html_export_add_path_provider().
+ */
+function elms_terms_html_export_add_path_provider() {
+  $items = array(
+    'elms_terms' => array(
+      'title' => 'ELMS: Terms',
+      'callback' => '_elms_terms_html_export_paths',
+    ),
+  );
+  return $items;
+}
+
+/**
+ * Callback for core_all_nodes provider.
+ */
+function _elms_terms_html_export_paths() {
+  $group = og_get_group_context();
+  $base = '';
+  if (isset($group->purl)) {
+    $base = $group->purl .'/';
+  }
+  // provide paths that need to be loaded with this module enabled
+  $paths = array($base .'elms_terms' => $base .'elms_terms');
+  // iterate 10 possible pages, outside that range won't be linked to anyway
+  for ($i=1; $i<11; $i++) {
+    $paths[$base .'elms_terms&page='. $i] = $base .'elms_terms&page='. $i;
+  }
+  return $paths;
+}

@@ -1,0 +1,144 @@
+<?php
+
+/**
+ * Implementation of hook_init().
+ */
+function nodereference_highlight_init() {
+  // only add highlighting to nodes
+  if (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == '') {
+    drupal_add_js(drupal_get_path('module', 'nodereference_highlight') .'/js/nodereference_highlight.js');
+    drupal_add_css(drupal_get_path('module', 'nodereference_highlight') .'/css/nodereference_highlight.css');
+  }
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function nodereference_highlight_perm() {
+  $relationships = nodereference_highlight_get_relationships(TRUE);
+  // Generate a list of highlighters and permissions.
+  foreach ($relationships as $rel) {
+    $perms[] = 'highlight '. $rel['perm'];
+  }
+  return $perms;
+}
+
+/**
+ * Render the highlight list.
+ */
+function _nodereference_highlight_render_items($relationship) {
+  foreach ($relationship['highlight_types'] as $key => $val) {
+    // account for title field
+    if ($val['text_field'] == 'title') {
+      $text_prop = 'edit['. $val['text_field'] .']';
+    }
+    else {
+      $text_prop = 'edit['. $val['text_field'] .'][0][value]';
+    }
+    // references are not per node based if auto detected
+    if ($val['ref_field'] == '-auto-detect-') {
+      $props = array('attributes' => array('title' => $val['display_text']), 'query' => array('destination' => $_GET['q'], $text_prop => ''), 'html' => TRUE);
+    }
+    else {
+      $props = array('attributes' => array('title' => $val['display_text']), 'query' => array('destination' => $_GET['q'], 'edit['. $val['ref_field'] .'][nid][nid]' => arg(1), $text_prop => ''), 'html' => TRUE);
+    }
+      $output .= '<li>'. l('<img src="'. base_path() . $val['icon'] .'" alt="'. $val['display_text'] .'" class="nrhi_icon" />', 'node/add/'. str_replace('_', '-', $key), $props) .'</li>';
+  }
+  if (!empty($output)) {
+    return '<div id="nrhi_container"><div class="nrhi_pre">'. $relationship['name'] .'</div><ul class="nrhi_items">'. $output .'</ul><div class="nrhi_post"></div></div>';
+  }
+  return FALSE;
+}
+
+/**
+ * Pull together a list of relationships.
+ */
+function nodereference_highlight_get_relationships($display_all = FALSE) {
+  // define all relationships
+  $relationships = module_invoke_all('define_highlight_relationship');
+  // allow other projects to alter relationships
+  drupal_alter('define_highlight_relationship', $relationships);
+  // only return what the user has access to do
+  $send_rels = array();
+  foreach ($relationships as $key => $relationship) {
+    if (user_access('highlight '. $relationship['perm']) || $display_all) {
+      $send_rels[$key] = $relationship;
+    }
+  }
+  return $send_rels;
+}
+
+/**
+ * Implementation of hook_filter().
+ */
+function nodereference_highlight_filter($op, $delta = 0, $format = -1, $text = '', $cache_id = 0) {
+  switch ($op) {
+    case 'list':
+      return array(0 => t('Highlite node references'));
+    break;
+    case 'description':
+      return t('Check content for contextual references');
+    break;
+    case 'no cache':
+      return FALSE;
+    break;
+    case 'prepare':
+      // get built definitions
+      $rels = nodereference_highlight_get_relationships(TRUE);
+      foreach ($rels as $relationship) {
+        foreach ($relationship['highlight_types'] as $key => $highlight_type) {
+          // convert relationships to query language, ignoring auto detect
+          if ($highlight_type['ref_field'] != '-auto-detect-') {
+            $result = db_query("SELECT nid FROM {content_type_%s} WHERE %s=%d GROUP BY nid", $key, $highlight_type['ref_field'] .'_nid', arg(1));
+            while ($val = db_fetch_array($result)) {
+              $node = node_load($val['nid']);
+              // allow for the use of the title field
+              if ($highlight_type['text_field'] == 'title') {
+                $text = str_replace($node->title, '['. $key .'ref]'. $node->title .'[/'. $key .'ref]', $text);
+              }
+              else {
+                $text = str_replace($node->{$highlight_type['text_field']}[0]['value'], '['. $key .'ref]'. $node->{$highlight_type['text_field']}[0]['value'] .'[/'. $key .'ref]', $text);
+              }
+            }
+          }
+        }
+      }
+      return $text;
+    break;
+    case "process":
+      // get built definitions
+      $rels = nodereference_highlight_get_relationships(TRUE);
+      foreach ($rels as $relationship) {
+        foreach ($relationship['highlight_types'] as $key => $val) {
+          $text = str_replace('['. $key .'ref]', '<a href="#nrhi_'. $val['id'] .'" class="nrhi_body_item nrhi_'. $val['id'] .'" name="nrhi_'. $val['id'] .'_body_item">', $text);
+          $text = str_replace('[/'. $key .'ref]', '</a>', $text);
+        }
+      }
+      return $text;
+    break;
+    default:
+      return $text;
+    break;
+  }
+}
+
+/**
+ * Implementation of hook_footer().
+ */
+function nodereference_highlight_footer() {
+  // only add highlighting to nodes
+  if (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == '') {
+    // get all relationships to know what types to add
+    $output = '';
+    $rels = nodereference_highlight_get_relationships();
+    // loop through each as we might have access to multiple relationships
+    foreach ($rels as $relationship) {
+      // verify that this relationship can be used on this node type
+      $node = node_load(arg(1));
+      if (isset($node->nid) && in_array($node->type, $relationship['types'])) {
+        $output .= _nodereference_highlight_render_items($relationship);
+      }
+    }
+    return $output;
+  }
+}

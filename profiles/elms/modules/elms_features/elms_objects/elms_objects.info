@@ -1,0 +1,20 @@
+name = "ELMS Objects"
+description = "Adds a view that displays all nodes in a group"
+core = "6.x"
+package = "Features"
+dependencies[] = "spaces"
+dependencies[] = "views"
+features[views][] = "elms_objects"
+features[views_api][] = "api:2"
+kitf = "1.0-draft"
+spaces[types][] = "og"
+
+
+
+
+; Information added by drupal.org packaging script on 2012-06-28
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "elms_features"
+datestamp = "1340910101"
+

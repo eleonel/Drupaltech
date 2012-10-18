@@ -1,0 +1,14 @@
+; $Id: user_progress_requirement_dashboard.info
+name = "User Progress Requirement Dashboard"
+description = "Provides requirement dashboards associated with the user progress project"
+package = "User Progress"
+core = "6.x"
+dependencies[] = "user_progress"
+dependencies[] = "requirement_dashboard"
+
+; Information added by drupal.org packaging script on 2012-06-21
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "user_progress"
+datestamp = "1340300216"
+

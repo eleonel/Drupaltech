@@ -1,0 +1,10 @@
+name = Private Download
+description = Provides private download directory when the file system is configured for public download access.
+core = 6.x
+
+; Information added by drupal.org packaging script on 2012-05-10
+version = "6.x-1.4"
+core = "6.x"
+project = "private_download"
+datestamp = "1336666290"
+

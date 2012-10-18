@@ -1,0 +1,17 @@
+; $Id: workflow_purl
+name = "Workflow Purl Integration"
+description = "Provides the ability to change PURL value based on Workflow State changes."
+package = "Workflow"
+project = "workflow_purl"
+dependencies[] = "workflow"
+dependencies[] = "purl"
+dependencies[] = "token"
+dependencies[] = "spaces_og"
+core = "6.x"
+
+; Information added by drupal.org packaging script on 2012-06-21
+version = "6.x-1.0"
+core = "6.x"
+project = "workflow_purl"
+datestamp = "1340299320"
+

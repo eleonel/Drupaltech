@@ -1,0 +1,116 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for the elms_cle core.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function elms_cle_install() {
+  // alter the feature menu to say engagement
+  db_query("UPDATE {menu_custom} SET title='Engagement' WHERE menu_name='features'");
+  // install the default settings for OER and closed courses
+  $ary = array(
+    'name' => 'og_private',
+    'title' => 'Private learning environment',
+    'description' => 'Only registered students will be able to access this section of the learning environment',
+    'space_type' => 'og',
+    'value' => array(
+      'variable' => array(
+      'spaces_features' => array(
+        'elms_open_studio' => 1,
+        'elms_id_best_practices' => 1,
+      ),
+      'spaces_preset_og' => 'og_private',
+      'spaces_og_selective' => 3,
+      'spaces_og_register' => 0,
+      'spaces_og_directory' => 0,
+      'spaces_og_private' => 1,
+      'site_frontpage' => 'spaces-frontpage',
+      'site_frontpage_path' => 'spaces-frontpage',
+    ),
+    'context' => array(),
+    )
+  );
+  drupal_write_record('spaces_presets', $ary);
+  $ary = array(
+    'name' => 'og_public',
+    'title' => 'Open Section',
+    'description' => 'All content will be available to the public',
+    'space_type' => 'og',
+    'value' => array(
+      'variable' => array(
+        'spaces_features' => array(
+          'elms_open_studio' => 1,
+          'elms_id_best_practices' => 1,
+        ),
+        'spaces_og_selective' => 0,
+        'spaces_og_register' => 1,
+        'spaces_og_directory' => 1,
+        'spaces_og_private' => 0,
+        'site_frontpage' => 'spaces-frontpage',
+        'site_frontpage_path' => 'spaces-frontpage',
+      ),
+      'context' => array(),
+    )
+  );
+  // add menu links
+  $menu_link = array(
+    'menu_name' => 'features',
+    'link_path' => 'node/add',
+    'router_path' => 'node/add',
+    'link_title' => 'Add post / media',
+    'options' => array(
+      'attributes' => array(
+        'title' => 'Add content',
+      ),
+    ),
+    'module' => 'menu',
+    'hidden' => '0',
+    'external' => '0',
+    'has_children' => '0',
+    'expanded' => '0',
+    'weight' => '-47',
+  );
+  menu_link_save($menu_link);
+  // Exported menu link: features:node/add/exhibit
+  $menu_link = array(
+    'menu_name' => 'features',
+    'link_path' => 'node/add/exhibit',
+    'router_path' => 'node/add/exhibit',
+    'link_title' => 'Create Exhibit',
+    'options' => array(
+      'attributes' => array(
+        'title' => 'Create an exhibit to showcase your work',
+      ),
+    ),
+    'module' => 'menu',
+    'hidden' => '0',
+    'external' => '0',
+    'has_children' => '0',
+    'expanded' => '0',
+    'weight' => '-48',
+  );
+  menu_link_save($menu_link);
+  drupal_write_record('spaces_presets', $ary);
+  // set context values regardless of UI package being installed
+  variable_set('context_block_rebuild_needed', TRUE);
+  variable_set('context_reaction_block_disable_core', '1');
+  variable_set('context_reaction_block_all_regions', 0);
+  variable_set('context_reaction_block_expose_weights', 1);
+  // private download defaults need to be set manually as well
+  variable_set('private_download_directory', 'private');
+  variable_set('private_download_header', 'Content-Transfer-Encoding: binary
+Cache-Control: max-age=60, must-revalidate');
+  variable_set('private_download_htaccess', '<IfModule mod_rewrite.c>
+  RewriteEngine on
+  RewriteBase /system/files/private
+  RewriteRule ^(.*)$ $1 [L,R=301]
+</IfModule>');
+
+  // add suggested optimizations from dbtuner
+  db_query("ALTER TABLE {node_counter} ADD INDEX daycount (daycount)");
+  db_query("ALTER TABLE {node_counter} ADD INDEX timestamp (timestamp)");
+  db_query("ALTER TABLE {node_counter} ADD INDEX totalcount (totalcount)");
+}

@@ -1,0 +1,28 @@
+name = "ELMS Resources"
+description = "Definition of what a elms resource is"
+core = "6.x"
+package = "Features"
+project = "elms_resources"
+dependencies[] = "features"
+dependencies[] = "imagefield"
+dependencies[] = "link"
+dependencies[] = "strongarm"
+dependencies[] = "text"
+features[content][] = "elms_resource-field_cr_logo"
+features[content][] = "elms_resource-field_resource_link"
+features[content][] = "elms_resource-field_short_description"
+features[ctools][] = "strongarm:strongarm:1"
+features[imagecache][] = "elms_resource-list"
+features[node][] = "elms_resource"
+features[variable][] = "content_extra_weights_elms_resource"
+features[variable][] = "node_options_elms_resource"
+
+
+
+
+; Information added by drupal.org packaging script on 2012-06-28
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "elms_features"
+datestamp = "1340910101"
+
